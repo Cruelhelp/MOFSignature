@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editable Signature Template</title>
+  <link rel="stylesheet" href="signature-template.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="editor-panel">
+      <h1>Signature Card Editor</h1>
+      <p>Update the fields below to recreate the exact card layout.</p>
+      <form id="signatureForm">
+        <label>
+          Full name
+          <input type="text" name="name" value="Ms. Marjorie Jumpp" />
+        </label>
+        <label>
+          Role line 1
+          <input type="text" name="position" value="Corporate Planning &amp; Administration Division (CPAD)" />
+        </label>
+        <label>
+          Role line 2
+          <input type="text" name="organization" value="Ministry of Finance and the Public Service" />
+        </label>
+        <label>
+          Ministry name
+          <input type="text" name="ministry" value="MINISTRY OF FINANCE AND THE PUBLIC SERVICE" />
+        </label>
+        <label>
+          Division label
+          <input type="text" name="division" value="SPMB/CPAD DIVISION" />
+        </label>
+        <label>
+          Phone line
+          <input type="text" name="phone" value="CUG = 876-815-2823 | Ext: 206-4677" />
+        </label>
+        <label>
+          Email
+          <input type="email" name="email" value="marjorie.jumpp@mof.gov.jm" />
+        </label>
+        <label>
+          Address
+          <input type="text" name="address" value="30 National Heroes Circle, Kingston 4, Jamaica" />
+        </label>
+        <label>
+          Logo source
+          <input type="text" name="logoPath" value="embedded logo" disabled />
+        </label>
+      </form>
+    </section>
+
+    <section class="preview-panel">
+      <div class="preview-header">
+        <h2>Live Preview</h2>
+        <button class="copy-button" id="copySignatureButton" type="button">Copy Signature</button>
+      </div>
+      <article class="signature-card">
+        <div class="card-inner">
+          <div class="card-left">
+            <div class="logo-mark">
+              <div class="logo-image">
+                <img id="logoImg" src="" alt="MOFPS logo" />
+              </div>
+            </div>
+            <p class="ministry" id="ministryText">MINISTRY OF FINANCE AND THE PUBLIC SERVICE</p>
+            <div class="section-divider"></div>
+            <p class="division" id="divisionText">SPMB/CPAD DIVISION</p>
+          </div>
+
+          <div class="vertical-rule"></div>
+
+          <div class="card-right">
+            <p class="name" id="nameText">Ms. Marjorie Jumpp</p>
+            <div class="title-block">
+              <p class="position" id="positionText">Corporate Planning &amp; Administration Division (CPAD)</p>
+              <p class="organization" id="organizationText">Ministry of Finance and the Public Service</p>
+            </div>
+            <div class="contact-list">
+              <div class="contact-row">
+                <span class="icon icon-phone" aria-hidden="true"></span>
+                <span id="phoneText">CUG = 876-815-2823 | Ext: 206-4677</span>
+              </div>
+              <div class="contact-row">
+                <span class="icon icon-email" aria-hidden="true"></span>
+                <span id="emailText">marjorie.jumpp@mof.gov.jm</span>
+              </div>
+              <div class="contact-row">
+                <span class="icon icon-location" aria-hidden="true"></span>
+                <span id="addressText">30 National Heroes Circle,<br />Kingston 4, Jamaica</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="signature-logo-data.js"></script>
+  <script src="signature-template.js"></script>
+</body>
+</html>

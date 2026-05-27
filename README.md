@@ -19,7 +19,4 @@ This workspace now includes an editable HTML signature template based on the sig
 - Change the default text values in the form `input` elements.
 - Use the preview to recreate this card design for other people.
 
-## Next steps
 
-- If you want export support, I can add a button to save the preview as PNG or PDF.
-- If you want a Word/PowerPoint template instead, I can generate that too.

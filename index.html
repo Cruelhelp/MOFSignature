@@ -13,39 +13,75 @@
       <p>Update the fields below to recreate the exact card layout.</p>
       <form id="signatureForm">
         <label>
-          Full name
+          <div class="label-action-row">
+            <span>Full name</span>
+            <button type="button" class="remove-field-button" aria-label="Remove field">−</button>
+          </div>
           <input type="text" name="name" value="Ms. Marjorie Jumpp" />
         </label>
+
         <label>
-          Role line 1
+          <div class="label-action-row">
+            <span>Role line 1</span>
+            <button type="button" class="remove-field-button" aria-label="Remove field">−</button>
+          </div>
           <input type="text" name="position" value="Corporate Planning &amp; Administration Division (CPAD)" />
         </label>
+
         <label>
-          Role line 2
+          <div class="label-action-row">
+            <span>Role line 2</span>
+            <button type="button" class="remove-field-button" aria-label="Remove field">−</button>
+          </div>
           <input type="text" name="organization" value="Ministry of Finance and the Public Service" />
         </label>
+
         <label>
-          Ministry name
+          <div class="label-action-row">
+            <span>Ministry name</span>
+            <button type="button" class="remove-field-button" aria-label="Remove field">−</button>
+          </div>
           <input type="text" name="ministry" value="MINISTRY OF FINANCE AND THE PUBLIC SERVICE" />
         </label>
-        <label>
-          Division label
+
+        <label class="division-input-row">
+          <div class="label-action-row">
+            <span>Division label</span>
+            <button type="button" class="duplicate-row-button" aria-label="Duplicate division row">+</button>
+            <button type="button" class="remove-row-button" aria-label="Remove division row">−</button>
+          </div>
           <input type="text" name="division" value="SPMB/CPAD DIVISION" />
         </label>
+
         <label>
-          Phone line
+          <div class="label-action-row">
+            <span>Phone line</span>
+            <button type="button" class="remove-field-button" aria-label="Remove field">−</button>
+          </div>
           <input type="text" name="phone" value="CUG = 876-815-2823 | Ext: 206-4677" />
         </label>
+
         <label>
-          Email
+          <div class="label-action-row">
+            <span>Email</span>
+            <button type="button" class="remove-field-button" aria-label="Remove field">−</button>
+          </div>
           <input type="email" name="email" value="marjorie.jumpp@mof.gov.jm" />
         </label>
+
         <label>
-          Address
+          <div class="label-action-row">
+            <span>Address</span>
+            <button type="button" class="remove-field-button" aria-label="Remove field">−</button>
+          </div>
           <input type="text" name="address" value="30 National Heroes Circle, Kingston 4, Jamaica" />
         </label>
+
         <label>
-          Logo source
+          <div class="label-action-row">
+            <span>Logo source</span>
+            <button type="button" class="remove-field-button" aria-label="Remove field">−</button>
+          </div>
           <input type="text" name="logoPath" value="embedded logo" disabled />
         </label>
       </form>

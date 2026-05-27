@@ -2,7 +2,9 @@
   var form = document.getElementById('signatureForm');
   var copyButton = document.getElementById('copySignatureButton');
   var logoImage = document.getElementById('logoImg');
-  var embeddedLogoSrc = window.EMBEDDED_LOGO_SRC || logoImage.src;
+
+  // safe-guard: if logo data script failed to load or is empty, use a lightweight SVG fallback
+  var embeddedLogoSrc = (window.EMBEDDED_LOGO_SRC && String(window.EMBEDDED_LOGO_SRC).trim()) || (logoImage && logoImage.src) || 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150"><rect width="100%" height="100%" fill="#ffffff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#001670">MOFPS</text></svg>');
   var mapping = {
     name: 'nameText',
     position: 'positionText',
@@ -15,9 +17,26 @@
     logoPath: 'logoImg'
   };
 
-  logoImage.src = embeddedLogoSrc;
+  if (logoImage) {
+    logoImage.src = embeddedLogoSrc;
+  }
 
-  form.addEventListener('input', function (event) {
+  function getDivisionInputs() {
+    return Array.prototype.slice.call(document.querySelectorAll('input[name="division"]'));
+  }
+
+  function updateDivisionPreview() {
+    var divisionNode = document.getElementById('divisionText');
+    var values = getDivisionInputs().map(function (input) {
+      return input.value.trim() || '-';
+    });
+    divisionNode.innerHTML = values.map(function (value) {
+      return escapeHtml(value);
+    }).join('<br>');
+  }
+
+  if (form) {
+    form.addEventListener('input', function (event) {
     var target = event.target;
     var id = mapping[target.name];
     var output;
@@ -46,8 +65,97 @@
       return;
     }
 
+    if (target.name === 'division') {
+      updateDivisionPreview();
+      return;
+    }
+
     output = document.getElementById(id);
     output.textContent = target.value || '-';
+    });
+  } else {
+    console.warn('Signature form not found: input bindings skipped');
+  }
+
+  document.addEventListener('click', function (event) {
+    var dupBtn = event.target.closest('.duplicate-row-button');
+
+    if (dupBtn) {
+      var row = dupBtn.closest('.division-input-row');
+
+      if (!row) {
+        return;
+      }
+
+      var clone = row.cloneNode(true);
+      var originalInput = row.querySelector('input[name="division"]');
+      var cloneInput = clone.querySelector('input[name="division"]');
+
+      if (cloneInput && originalInput) {
+        cloneInput.value = originalInput.value;
+      }
+
+      row.parentNode.insertBefore(clone, row.nextSibling);
+      updateDivisionPreview();
+      return;
+    }
+
+    var removeBtn = event.target.closest('.remove-row-button, .remove-field-button');
+
+    if (!removeBtn) {
+      return;
+    }
+
+    // If removing a division row
+    var divisionRow = removeBtn.closest('.division-input-row');
+
+    if (divisionRow) {
+      var inputs = getDivisionInputs();
+
+      if (inputs.length <= 1) {
+        return; // keep at least one division input
+      }
+
+      divisionRow.parentNode.removeChild(divisionRow);
+      updateDivisionPreview();
+      return;
+    }
+
+    // Removing a generic field label
+    var label = removeBtn.closest('label');
+
+    if (!label) {
+      return;
+    }
+
+    var input = label.querySelector('input, textarea, select');
+
+    if (input) {
+      var name = input.name;
+      var id = mapping[name];
+
+      if (id) {
+        var node = document.getElementById(id);
+
+        if (node) {
+          var contactRow = node.closest('.contact-row');
+
+          if (contactRow) {
+            // remove the entire contact row (icon + text)
+            contactRow.parentNode.removeChild(contactRow);
+          } else if (node.id === 'logoImg') {
+            // remove the image element itself
+            if (node.parentNode) node.parentNode.removeChild(node);
+          } else {
+            // hide or clear other preview text nodes
+            node.textContent = '';
+            node.style.display = 'none';
+          }
+        }
+      }
+    }
+
+    label.parentNode.removeChild(label);
   });
 
   function fallbackCopyHtml(html) {
@@ -86,7 +194,14 @@
   }
 
   function getText(id) {
-    return document.getElementById(id).innerText.replace(/\s+/g, ' ').trim();
+    var el = document.getElementById(id);
+    var text = el && el.innerText ? el.innerText : '';
+
+    if (id === 'divisionText') {
+      return text.replace(/[ \t]+/g, ' ').replace(/\r?\n+/g, '\n').trim();
+    }
+
+    return text.replace(/\s+/g, ' ').trim();
   }
 
   function getCopiedPositionText() {
@@ -94,7 +209,10 @@
   }
 
   function getAddressLines() {
-    var address = document.getElementById('addressText').innerText.trim();
+    var el = document.getElementById('addressText');
+    var address = el && el.innerText ? el.innerText.trim() : '';
+    if (!address) return [''];
+
     var lines = address.split(/\n+/);
 
     if (lines.length > 1) {
@@ -284,7 +402,9 @@
 
       context.font = '900 50px Arial, Helvetica, sans-serif';
       context.letterSpacing = '2px';
-      context.fillText(getText('divisionText'), leftCenter, 516);
+      getText('divisionText').split(/\n+/).forEach(function (line, index) {
+        context.fillText(line, leftCenter, 516 + (index * 64));
+      });
       context.letterSpacing = '0px';
 
       context.fillRect(815, 0, 8, 729);
@@ -299,19 +419,27 @@
       context.fillText(getText('organizationText'), 910, 235);
 
       context.font = '500 31px Arial, Helvetica, sans-serif';
-      drawPhoneIcon(context, 902, 304, 60);
-      context.fillStyle = navy;
-      context.fillText(getText('phoneText'), 982, 347);
+      var phoneText = getText('phoneText');
+      if (phoneText && phoneText !== '-') {
+        drawPhoneIcon(context, 902, 304, 60);
+        context.fillStyle = navy;
+        context.fillText(phoneText, 982, 347);
+      }
 
-      drawEmailIcon(context, 902, 386, 60);
-      context.fillStyle = navy;
-      context.fillText(getText('emailText'), 982, 431);
+      var emailText = getText('emailText');
+      if (emailText && emailText !== '-') {
+        drawEmailIcon(context, 902, 386, 60);
+        context.fillStyle = navy;
+        context.fillText(emailText, 982, 431);
+      }
 
-      drawLocationIcon(context, 900, 466, 66);
-      context.fillStyle = navy;
-      context.fillText(addressLines[0] || '', 982, 512);
-      if (addressLines[1]) {
-        context.fillText(addressLines[1], 982, 555);
+      if (addressLines && (addressLines[0] || '') && (addressLines[0] !== '-')) {
+        drawLocationIcon(context, 900, 466, 66);
+        context.fillStyle = navy;
+        context.fillText(addressLines[0] || '', 982, 512);
+        if (addressLines[1]) {
+          context.fillText(addressLines[1], 982, 555);
+        }
       }
 
       return canvasToBlob(canvas);
@@ -345,17 +473,33 @@
     var position = escapeHtml(getText('positionText'));
     var organization = escapeHtml(getText('organizationText'));
     var ministry = escapeHtml(getText('ministryText'));
-    var division = escapeHtml(getText('divisionText'));
+    var division = escapeHtml(getText('divisionText')).replace(/\n/g, '<br>');
     var phone = escapeHtml(getText('phoneText'));
     var email = escapeHtml(getText('emailText'));
     var addressLines = getAddressLines();
     var addressHtml = escapeHtml(addressLines[0] || '');
-    var phoneIcon = '<span style="font-family:Arial,sans-serif;color:' + gold + ';font-size:' + iconSize + 'px;line-height:' + iconSize + 'px;font-weight:bold;">&#9742;</span>';
-    var emailIcon = '<span style="display:inline-block;width:' + iconSize + 'px;height:' + iconSize + 'px;line-height:' + iconSize + 'px;text-align:center;background:' + navy + ';color:#ffffff;border-radius:50%;font-family:Arial,sans-serif;font-size:' + px(iconSize * 0.55) + 'px;">&#9993;</span>';
-    var locationIcon = '<span style="display:inline-block;width:' + iconSize + 'px;height:' + iconSize + 'px;line-height:' + iconSize + 'px;text-align:center;background:' + navy + ';color:#ffffff;border-radius:50%;font-family:Arial,sans-serif;font-size:' + px(iconSize * 0.55) + 'px;">&#9679;</span>';
 
     if (addressLines[1]) {
       addressHtml += '<br>' + escapeHtml(addressLines[1]);
+    }
+
+    var contactRows = '';
+
+    if (phone && phone !== '-') {
+      var phoneIcon = '<span style="font-family:Arial,sans-serif;color:' + gold + ';font-size:' + iconSize + 'px;line-height:' + iconSize + 'px;font-weight:bold;">&#9742;</span>';
+      contactRows += '<tr><td width="' + iconSize + '" style="width:' + iconSize + 'px;vertical-align:middle;text-align:center;">' + phoneIcon + '</td><td style="padding-left:' + px(width * 0.016) + 'px;font-family:Arial,Helvetica,sans-serif;font-size:' + textSize + 'px;line-height:' + px(textSize * 1.16) + 'px;font-weight:500;color:' + navy + ';white-space:nowrap;">' + phone + '</td></tr>';
+      contactRows += '<tr><td colspan="2" height="' + px(width * 0.0245) + '" style="height:' + px(width * 0.0245) + 'px;font-size:0;line-height:0;">&nbsp;</td></tr>';
+    }
+
+    if (email && email !== '-') {
+      var emailIcon = '<span style="display:inline-block;width:' + iconSize + 'px;height:' + iconSize + 'px;line-height:' + iconSize + 'px;text-align:center;background:' + navy + ';color:#ffffff;border-radius:50%;font-family:Arial,sans-serif;font-size:' + px(iconSize * 0.55) + 'px;">&#9993;</span>';
+      contactRows += '<tr><td width="' + iconSize + '" style="width:' + iconSize + 'px;vertical-align:middle;text-align:center;">' + emailIcon + '</td><td style="padding-left:' + px(width * 0.016) + 'px;font-family:Arial,Helvetica,sans-serif;font-size:' + textSize + 'px;line-height:' + px(textSize * 1.16) + 'px;font-weight:500;color:' + navy + ';white-space:nowrap;">' + email + '</td></tr>';
+      contactRows += '<tr><td colspan="2" height="' + px(width * 0.0245) + '" style="height:' + px(width * 0.0245) + 'px;font-size:0;line-height:0;">&nbsp;</td></tr>';
+    }
+
+    if (addressHtml && addressHtml !== '-') {
+      var locationIcon = '<span style="display:inline-block;width:' + iconSize + 'px;height:' + iconSize + 'px;line-height:' + iconSize + 'px;text-align:center;background:' + navy + ';color:#ffffff;border-radius:50%;font-family:Arial,sans-serif;font-size:' + px(iconSize * 0.55) + 'px;">&#9679;</span>';
+      contactRows += '<tr><td width="' + iconSize + '" style="width:' + iconSize + 'px;vertical-align:top;text-align:center;">' + locationIcon + '</td><td style="padding-left:' + px(width * 0.016) + 'px;font-family:Arial,Helvetica,sans-serif;font-size:' + textSize + 'px;line-height:' + px(textSize * 1.16) + 'px;font-weight:500;color:' + navy + ';white-space:nowrap;">' + addressHtml + '</td></tr>';
     }
 
     return '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#ffffff;">' +
@@ -382,11 +526,7 @@
       '<div style="padding-top:' + px(width * 0.0155) + 'px;font-family:Arial,Helvetica,sans-serif;font-size:' + textSize + 'px;line-height:' + px(textSize * 1.12) + 'px;font-weight:500;color:' + navy + ';white-space:nowrap;">' + position + '</div>' +
       '<div style="padding-top:' + px(width * 0.0125) + 'px;font-family:Arial,Helvetica,sans-serif;font-size:' + textSize + 'px;line-height:' + px(textSize * 1.12) + 'px;font-weight:500;color:' + navy + ';white-space:nowrap;">' + organization + '</div>' +
       '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:' + px(width * 0.0345) + 'px;border-collapse:collapse;">' +
-      '<tr><td width="' + iconSize + '" style="width:' + iconSize + 'px;vertical-align:middle;text-align:center;">' + phoneIcon + '</td><td style="padding-left:' + px(width * 0.016) + 'px;font-family:Arial,Helvetica,sans-serif;font-size:' + textSize + 'px;line-height:' + px(textSize * 1.16) + 'px;font-weight:500;color:' + navy + ';white-space:nowrap;">' + phone + '</td></tr>' +
-      '<tr><td colspan="2" height="' + px(width * 0.0245) + '" style="height:' + px(width * 0.0245) + 'px;font-size:0;line-height:0;">&nbsp;</td></tr>' +
-      '<tr><td width="' + iconSize + '" style="width:' + iconSize + 'px;vertical-align:middle;text-align:center;">' + emailIcon + '</td><td style="padding-left:' + px(width * 0.016) + 'px;font-family:Arial,Helvetica,sans-serif;font-size:' + textSize + 'px;line-height:' + px(textSize * 1.16) + 'px;font-weight:500;color:' + navy + ';white-space:nowrap;">' + email + '</td></tr>' +
-      '<tr><td colspan="2" height="' + px(width * 0.0245) + '" style="height:' + px(width * 0.0245) + 'px;font-size:0;line-height:0;">&nbsp;</td></tr>' +
-      '<tr><td width="' + iconSize + '" style="width:' + iconSize + 'px;vertical-align:top;text-align:center;">' + locationIcon + '</td><td style="padding-left:' + px(width * 0.016) + 'px;font-family:Arial,Helvetica,sans-serif;font-size:' + textSize + 'px;line-height:' + px(textSize * 1.16) + 'px;font-weight:500;color:' + navy + ';white-space:nowrap;">' + addressHtml + '</td></tr>' +
+      contactRows +
       '</table>' +
       '</td>' +
       '</tr>' +
@@ -402,7 +542,8 @@
     });
   }
 
-  copyButton.addEventListener('click', function () {
+  if (copyButton) {
+    copyButton.addEventListener('click', function () {
     var text = document.querySelector('.signature-card').innerText;
     copyButton.textContent = 'Copying...';
 
@@ -423,7 +564,10 @@
     }
 
     copyHtmlFallback(text);
-  });
+    });
+  } else {
+    console.warn('Copy button not found: copy bindings skipped');
+  }
 
   function copyHtmlFallback(text) {
     createSignatureHtml().then(function (html) {

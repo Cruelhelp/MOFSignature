@@ -66,9 +66,64 @@ label {
   color: #334155;
 }
 
+.label-action-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font: inherit;
+  color: inherit;
+}
+
+.duplicate-row-button {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  width: 1.55rem;
+  height: 1.55rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.duplicate-row-button:hover,
+.duplicate-row-button:focus-visible {
+  background: rgba(0, 22, 112, 0.08);
+}
+
+.remove-field-button,
+.remove-row-button {
+  border: none;
+  background: transparent;
+  color: #b91c1c;
+  font: inherit;
+  font-weight: 700;
+  width: 1.55rem;
+  height: 1.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.remove-field-button:hover,
+.remove-row-button:hover,
+.remove-field-button:focus-visible,
+.remove-row-button:focus-visible {
+  background: rgba(185, 28, 28, 0.08);
+}
+
 input {
   width: 100%;
   padding: 6px 8px;
+  border: 1px solid #cbd5e1;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   font: 0.78rem/1.25 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
